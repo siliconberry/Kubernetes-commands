@@ -1,0 +1,53 @@
+import os
+import subprocess
+import datetime
+from kubernetes import config, client
+
+def fetch_logs(cluster_name, pod_name, search_criteria):
+    try:
+        # Load Kubernetes configuration for the specified cluster
+        config.load_kube_config(context=cluster_name)
+
+        # Create a Kubernetes API client
+        k8s_api = client.CoreV1Api()
+
+        # Calculate the time 5 minutes ago
+        five_minutes_ago = datetime.datetime.now() - datetime.timedelta(minutes=5)
+        time_ago_str = five_minutes_ago.strftime("%Y-%m-%dT%H:%M:%S")
+
+        # Fetch logs from the pod
+        logs = k8s_api.read_namespaced_pod_log(
+            name=pod_name,
+            namespace="default",  # Replace with your desired namespace
+            since_time=time_ago_str,
+        )
+
+        # Reverse the logs
+        reversed_logs = "\n".join(logs.splitlines()[::-1])
+
+        # Find the last occurrence of the search criteria
+        reversed_search_criteria = search_criteria[::-1]  # Reverse the search criteria
+        start_index = reversed_logs.find(reversed_search_criteria)
+
+        if start_index != -1:
+            end_index = start_index + len(reversed_search_criteria)
+            matched_log = reversed_logs[start_index:end_index]
+
+            # Print logs 3 lines above and 3 lines below the matched log
+            log_lines = reversed_logs.splitlines()
+            start_line = max(0, log_lines.index(matched_log) - 3)
+            end_line = min(len(log_lines), log_lines.index(matched_log) + 4)
+
+            result_logs = "\n".join(log_lines[start_line:end_line])
+
+            print(result_logs)
+
+    except Exception as e:
+        print(f"Error: {str(e)}")
+
+if __name__ == "__main__":
+    cluster_name = input("Enter Kubernetes cluster name: ")
+    pod_name = input("Enter pod name: ")
+    search_criteria = input("Enter search criteria: ")
+
+    fetch_logs(cluster_name, pod_name, search_criteria)
