@@ -1,0 +1,49 @@
+import csv
+from datetime import datetime
+from influxdb_client import InfluxDBClient, Point
+from influxdb_client.client.write_api import SYNCHRONOUS
+
+# InfluxDB configuration
+url = "http://localhost:8086"
+token = "your-influxdb-token"
+org = "your-influxdb-org"
+bucket = "your-influxdb-bucket"
+
+# Create an InfluxDB client
+client = InfluxDBClient(url=url, token=token, org=org)
+write_api = client.write_api(write_options=SYNCHRONOUS)
+
+# CSV file configuration
+csv_file = 'your-data.csv'
+
+# Function to send data to InfluxDB
+def send_to_influxdb(timestamp, measurement, value):
+    point = Point(measurement).field("value", value).time(timestamp)
+    write_api.write(bucket=bucket, record=point)
+
+# Read the CSV file
+new_data = []
+with open(csv_file, 'r') as csvfile:
+    reader = csv.DictReader(csvfile)
+    for row in reader:
+        timestamp = datetime.strptime(row['timestamp'], '%Y-%m-%d %H:%M:%S')
+        measurement = row['measurement']
+        value = float(row['value'])
+        new_data.append((timestamp, measurement, value))
+
+# Query InfluxDB for the latest timestamp
+query = f'from(bucket: "{bucket}") |> range(start: 0) |> last()'
+tables = client.query_api().query(query)
+latest_timestamp = None
+
+for table in tables:
+    for record in table.records:
+        latest_timestamp = record.get_time()
+
+# Send only new data
+for timestamp, measurement, value in new_data:
+    if latest_timestamp is None or timestamp > latest_timestamp:
+        send_to_influxdb(timestamp, measurement, value)
+
+# Close the InfluxDB client
+client.close()
