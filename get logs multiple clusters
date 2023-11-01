@@ -1,53 +1,52 @@
-import os
-import subprocess
-import datetime
-from kubernetes import config, client
+import pandas as pd
 
-def fetch_logs(cluster_name, pod_name, search_criteria):
-    try:
-        # Load Kubernetes configuration for the specified cluster
-        config.load_kube_config(context=cluster_name)
+# Read the log file
+with open('log_file.txt', 'r') as file:
+    log_lines = file.readlines()
 
-        # Create a Kubernetes API client
-        k8s_api = client.CoreV1Api()
+# Preprocess and extract features
+# For simplicity, we'll use a simple keyword-based feature extraction
+keywords = ['error', 'warning', 'info']
+X = [' '.join([word for word in line.lower().split() if word in keywords]) for line in log_lines]
 
-        # Calculate the time 5 minutes ago
-        five_minutes_ago = datetime.datetime.now() - datetime.timedelta(minutes=5)
-        time_ago_str = five_minutes_ago.strftime("%Y-%m-%dT%H:%M:%S")
+# Create labels based on log content (e.g., looking for the word "error")
+y = [1 if 'error' in line else 0 for line in log_lines]
 
-        # Fetch logs from the pod
-        logs = k8s_api.read_namespaced_pod_log(
-            name=pod_name,
-            namespace="default",  # Replace with your desired namespace
-            since_time=time_ago_str,
-        )
+# Create a DataFrame for visualization and analysis
+log_data = pd.DataFrame({'Text': X, 'Label': y})
 
-        # Reverse the logs
-        reversed_logs = "\n".join(logs.splitlines()[::-1])
+# Now you can use X and y to train and evaluate your classification models.
+----
 
-        # Find the last occurrence of the search criteria
-        reversed_search_criteria = search_criteria[::-1]  # Reverse the search criteria
-        start_index = reversed_logs.find(reversed_search_criteria)
+import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.svm import SVC
+from sklearn.metrics import accuracy_score
 
-        if start_index != -1:
-            end_index = start_index + len(reversed_search_criteria)
-            matched_log = reversed_logs[start_index:end_index]
+# Read and preprocess your log file to create X (features) and y (labels) arrays
 
-            # Print logs 3 lines above and 3 lines below the matched log
-            log_lines = reversed_logs.splitlines()
-            start_line = max(0, log_lines.index(matched_log) - 3)
-            end_line = min(len(log_lines), log_lines.index(matched_log) + 4)
+# Split the data into training and testing sets
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-            result_logs = "\n".join(log_lines[start_line:end_line])
+# Text Vectorization using TF-IDF
+tfidf_vectorizer = TfidfVectorizer()
+X_train_tfidf = tfidf_vectorizer.fit_transform(X_train)
+X_test_tfidf = tfidf_vectorizer.transform(X_test)
 
-            print(result_logs)
+# K-Nearest Neighbors (KNN) Classifier
+knn_classifier = KNeighborsClassifier(n_neighbors=3)
+knn_classifier.fit(X_train_tfidf, y_train)
+knn_predictions = knn_classifier.predict(X_test_tfidf)
+knn_accuracy = accuracy_score(y_test, knn_predictions)
 
-    except Exception as e:
-        print(f"Error: {str(e)}")
+print("K-Nearest Neighbors (KNN) Accuracy:", knn_accuracy)
 
-if __name__ == "__main__":
-    cluster_name = input("Enter Kubernetes cluster name: ")
-    pod_name = input("Enter pod name: ")
-    search_criteria = input("Enter search criteria: ")
+# Support Vector Machine (SVM) Classifier
+svm_classifier = SVC(kernel='linear', C=1.0)
+svm_classifier.fit(X_train_tfidf, y_train)
+svm_predictions = svm_classifier.predict(X_test_tfidf)
+svm_accuracy = accuracy_score(y_test, svm_predictions)
 
-    fetch_logs(cluster_name, pod_name, search_criteria)
+print("Support Vector Machine (SVM) Accuracy:", svm_accuracy)
