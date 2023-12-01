@@ -1,0 +1,39 @@
+from reportlab.lib.pagesizes import letter
+from reportlab.pdfgen import canvas
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Image, Table
+from reportlab.lib.styles import getSampleStyleSheet
+
+# Function to create a PDF report
+def create_pdf_report(output_filename):
+    # Create a PDF document
+    pdf = SimpleDocTemplate(output_filename, pagesize=letter)
+
+    # Story is a list of flowable elements
+    story = []
+
+    # Add a title
+    title = "PDF Report with Dashboards"
+    styles = getSampleStyleSheet()
+    story.append(Paragraph(title, styles['Title']))
+
+    # Add text
+    text = "This is an example PDF report created using Python and reportlab."
+    story.append(Paragraph(text, styles['Normal']))
+
+    # Add an image
+    image_path = "/path/to/your/image.jpg"  # Replace with the path to your image
+    image = Image(image_path, width=400, height=300)
+    story.append(image)
+
+    # Add a table
+    data = [["Name", "Age", "Country"],
+            ["John Doe", 30, "USA"],
+            ["Jane Smith", 25, "Canada"]]
+    table = Table(data)
+    story.append(table)
+
+    # Build the PDF document
+    pdf.build(story)
+
+if __name__ == "__main__":
+    create_pdf_report("example_report.pdf")
