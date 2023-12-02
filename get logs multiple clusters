@@ -1,52 +1,20 @@
-import pandas as pd
+from diagrams import Diagram, Cluster
+from diagrams.generic.network import Switch
+from diagrams.generic.compute import Rack, Server
 
-# Read the log file
-with open('log_file.txt', 'r') as file:
-    log_lines = file.readlines()
+with Diagram("Architecture", show=False, filename="architecture", format="png"):
+    input_servers = [Server(f"Input Server {i}") for i in range(1, 6)]
+    f5 = Switch("F5")
+    processing_server = Rack("Processing Server")
+    output_servers = [Server(f"Output Server {i}") for i in range(1, 6)]
 
-# Preprocess and extract features
-# For simplicity, we'll use a simple keyword-based feature extraction
-keywords = ['error', 'warning', 'info']
-X = [' '.join([word for word in line.lower().split() if word in keywords]) for line in log_lines]
+    with Cluster("Input Servers"):
+        input_servers
 
-# Create labels based on log content (e.g., looking for the word "error")
-y = [1 if 'error' in line else 0 for line in log_lines]
+    f5 >> processing_server
 
-# Create a DataFrame for visualization and analysis
-log_data = pd.DataFrame({'Text': X, 'Label': y})
+    with Cluster("Output Servers"):
+        output_servers
 
-# Now you can use X and y to train and evaluate your classification models.
-----
-
-import numpy as np
-from sklearn.model_selection import train_test_split
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.neighbors import KNeighborsClassifier
-from sklearn.svm import SVC
-from sklearn.metrics import accuracy_score
-
-# Read and preprocess your log file to create X (features) and y (labels) arrays
-
-# Split the data into training and testing sets
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-
-# Text Vectorization using TF-IDF
-tfidf_vectorizer = TfidfVectorizer()
-X_train_tfidf = tfidf_vectorizer.fit_transform(X_train)
-X_test_tfidf = tfidf_vectorizer.transform(X_test)
-
-# K-Nearest Neighbors (KNN) Classifier
-knn_classifier = KNeighborsClassifier(n_neighbors=3)
-knn_classifier.fit(X_train_tfidf, y_train)
-knn_predictions = knn_classifier.predict(X_test_tfidf)
-knn_accuracy = accuracy_score(y_test, knn_predictions)
-
-print("K-Nearest Neighbors (KNN) Accuracy:", knn_accuracy)
-
-# Support Vector Machine (SVM) Classifier
-svm_classifier = SVC(kernel='linear', C=1.0)
-svm_classifier.fit(X_train_tfidf, y_train)
-svm_predictions = svm_classifier.predict(X_test_tfidf)
-svm_accuracy = accuracy_score(y_test, svm_predictions)
-
-print("Support Vector Machine (SVM) Accuracy:", svm_accuracy)
+    input_servers >> f5
+    processing_server >> output_servers
