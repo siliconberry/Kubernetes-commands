@@ -1,0 +1,24 @@
+#!/bin/bash
+
+# Set your Grafana API URL, API key, dashboard UID, and panel ID
+GRAFANA_API_URL="http://your-grafana-instance/api"
+GRAFANA_API_KEY="your-api-key"
+DASHBOARD_UID="your-dashboard-uid"
+PANEL_ID=1  # Replace with your actual panel ID
+
+# Set the time range, width, and height
+TIME_RANGE="now-1h"
+WIDTH=800
+HEIGHT=600
+
+# Build the curl command
+curl -s -X POST -H "Authorization: Bearer $GRAFANA_API_KEY" -H "Content-Type: application/json" \
+     --data-raw "{\"dashboard\": \"$DASHBOARD_UID\", \"panel\": $PANEL_ID, \"time\": {\"from\": \"$TIME_RANGE\", \"to\": \"now\"}, \"width\": $WIDTH, \"height\": $HEIGHT}" \
+     "$GRAFANA_API_URL/render/d-solo/$DASHBOARD_UID/" > grafana_image.png
+
+# Check if the request was successful
+if [ $? -eq 0 ]; then
+  echo "Image saved successfully."
+else
+  echo "Error: Unable to save the image."
+fi
