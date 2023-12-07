@@ -1,20 +1,33 @@
-from diagrams import Diagram, Cluster
-from diagrams.generic.network import Switch
-from diagrams.generic.compute import Rack, Server
+import logging
 
-with Diagram("Architecture", show=False, filename="architecture", format="png"):
-    input_servers = [Server(f"Input Server {i}") for i in range(1, 6)]
-    f5 = Switch("F5")
-    processing_server = Rack("Processing Server")
-    output_servers = [Server(f"Output Server {i}") for i in range(1, 6)]
+class RedErrorMessageFormatter(logging.Formatter):
+    def format(self, record):
+        if record.levelno == logging.ERROR:
+            # If the log level is ERROR, format the message in red
+            record.msg = f'\033[91m{record.msg}\033[0m'
+        return super().format(record)
 
-    with Cluster("Input Servers"):
-        input_servers
+# Create a logger
+logger = logging.getLogger(__name__)
 
-    f5 >> processing_server
+# Create a console handler
+ch = logging.StreamHandler()
 
-    with Cluster("Output Servers"):
-        output_servers
+# Create the custom formatter
+formatter = RedErrorMessageFormatter('%(levelname)s: %(message)s')
 
-    input_servers >> f5
-    processing_server >> output_servers
+# Set the formatter for the console handler
+ch.setFormatter(formatter)
+
+# Add the console handler to the logger
+logger.addHandler(ch)
+
+# Set the logging level
+logger.setLevel(logging.DEBUG)
+
+# Example usage
+logger.debug('Debug message')
+logger.info('Info message')
+logger.warning('Warning message')
+logger.error('Error message in red')
+logger.critical('Critical message in red')
