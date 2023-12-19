@@ -1,33 +1,42 @@
-import logging
+import csv
 
-class RedErrorMessageFormatter(logging.Formatter):
-    def format(self, record):
-        if record.levelno == logging.ERROR:
-            # If the log level is ERROR, format the message in red
-            record.msg = f'\033[91m{record.msg}\033[0m'
-        return super().format(record)
+def split_csv(input_file):
+    with open(input_file, 'r', newline='') as csvfile:
+        reader = csv.reader(csvfile)
+        
+        current_pool = None
+        header = None
+        data = []
+        
+        for row in reader:
+            if not row or row[0].startswith('Date'):
+                # Skip empty rows and header rows
+                continue
+            
+            if row[0].startswith('Pool'):
+                # Start of a new pool section
+                if current_pool:
+                    write_csv(current_pool, header, data)
+                
+                current_pool = row[0].split('=')[1].strip()
+                header = next(reader)
+                data = []
+            
+            else:
+                # Regular data row
+                data.append(row)
+        
+        if current_pool:
+            write_csv(current_pool, header, data)
 
-# Create a logger
-logger = logging.getLogger(__name__)
+def write_csv(pool_name, header, data):
+    output_file = f'{pool_name}_output.csv'
+    with open(output_file, 'w', newline='') as csvfile:
+        writer = csv.writer(csvfile)
+        writer.writerow(header)
+        writer.writerows(data)
+    print(f'File "{output_file}" created.')
 
-# Create a console handler
-ch = logging.StreamHandler()
-
-# Create the custom formatter
-formatter = RedErrorMessageFormatter('%(levelname)s: %(message)s')
-
-# Set the formatter for the console handler
-ch.setFormatter(formatter)
-
-# Add the console handler to the logger
-logger.addHandler(ch)
-
-# Set the logging level
-logger.setLevel(logging.DEBUG)
-
-# Example usage
-logger.debug('Debug message')
-logger.info('Info message')
-logger.warning('Warning message')
-logger.error('Error message in red')
-logger.critical('Critical message in red')
+if __name__ == "__main__":
+    input_file = "your_input_file.csv"  # Replace with the actual file name
+    split_csv(input_file)
