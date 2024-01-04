@@ -1,49 +1,50 @@
 Question 1:
-Fill in the blanks to complete the Linux command that displays the current working directory:
+In Linux, the umask command is used to set default permissions for newly created files and directories.
 
-The command to display the current working directory is ________.
-
+True
+False
 Question 2:
-Complete the command to create a new directory named "docs" in the home directory:
+The awk command in Linux is primarily used for text processing and manipulation.
 
-To create a new directory named "docs," use the command ________.
-
+True
+False
 Question 3:
-Fill in the blanks to complete the Linux command for listing files in a directory:
+Linux symbolic links can only point to files and not directories.
 
-The command to list files in a directory is ________.
-
+True
+False
 Question 4:
-Complete the command to copy a file named "file.txt" to the "/backup" directory:
+The cron daemon is responsible for scheduling tasks in Linux and can be configured by the crontab command.
 
-To copy "file.txt" to the "/backup" directory, use the command ________.
-
+True
+False
 Question 5:
-Fill in the blanks to complete the Linux command for removing a directory named "old_docs" and its contents:
+The iptables command is used to configure the Linux kernel firewall.
 
-The command to remove a directory and its contents is ________.
-
+True
+False
 Question 6:
-Complete the command to find all files with the ".log" extension in the current directory:
+In Linux, the chown command can only change the owner of a file but not the group.
 
-To find files with the ".log" extension, use the command ________.
-
+True
+False
 Question 7:
-Fill in the blanks to complete the Linux command for changing file permissions to read and write for the owner:
+The tar command in Linux is used for compression and decompression of files.
 
-The command to change file permissions for the owner is chmod ________.
-
+True
+False
 Question 8:
-Complete the command to display information about system memory and swap usage:
+Linux supports real-time scheduling for processes using the nice command.
 
-To display memory and swap usage, use the command ________.
-
+True
+False
 Question 9:
-Fill in the blanks to complete the Linux command for searching for a specific pattern in files:
+The /etc/passwd file stores encrypted user passwords on a Linux system.
 
-The command to search for a pattern in files is ________.
-
+True
+False
 Question 10:
-Complete the command to navigate to the root directory:
+The journalctl command is used to query and display messages from the Linux system journal.
 
-To navigate to the root directory, use the command ________.
+True
+False
