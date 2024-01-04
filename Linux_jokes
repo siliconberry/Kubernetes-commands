@@ -1,70 +1,49 @@
-- Why do Linux users never get lost? Because they always find their way with the terminal!
-- What's a Linux user's favorite dance move? The sudo shuffle!
-- Why did the Linux sysadmin go broke? Too many dependencies!
-- How does a Linux user break up? They say, "It's not you, it's your distro."
-- Why do penguins love Linux? Because they're scared of Windows!
-- Why was the Linux kernel cold? It left its Windows open!
-- How does a Linux user change a lightbulb? They don't. They just submit a bug report saying, "Dark mode is better!"
-- Why did the Linux admin cross the road? To optimize the routing algorithm!
-- How does a Linux user apologize? They say, "I'm sorry, that was my grep."
-- Why don't Linux users play hide and seek? Because good luck hiding from someone who knows where the grep command is!
-- Why was the Linux computer cold in bed? It left its Windows open!
-- How many Linux users does it take to change a lightbulb? None. That's a hardware problem!
-- What's a Linux developer's favorite spice? Cinnamon!
-- Why did the Linux geek go to therapy? Too many kernel panics!
-- How does a Linux user propose? "Will you be my sysadmin for life?"
-- Why did the Linux admin go to jail? They got caught forking processes!
-- How does a Linux user express their feelings? Through their bash prompt!
-- What did the Linux sysadmin say to the server? "You've been a very systemdatic machine!"
-- Why do Linux users prefer dark mode? Because light attracts bugs!
-- What's a Linux user's favorite gardening tool? The root shovel!
-- Why do Linux users make good detectives? They know how to grep for clues!
-- How does a Linux user get through a breakup? They rm -rf the memories!
-- What's a Linux user's favorite music genre? Fork and roll!
-- Why don't Linux users get mad? They just fork themselves into a better mood!
-- How does a Linux user get rich? They sudo su to success!
-- What's a Linux user's favorite beverage? Kernel-ade!
-- Why did the Linux admin go to therapy? Too many unresolved issues!
-- How does a Linux user apologize? They say, "I'm sorry, I promise to be more POSIXitive."
-- Why did the Linux penguin cross the road? To get to the other slide!
-- What's a Linux user's favorite exercise? rm -rf /jogging!
-- Why did the Linux kernel go to therapy? It had too many issues with its parents (processes)!
-- What's a Linux user's favorite animal? The bash cow!
-- Why do Linux users hate secrets? Because they always end up in /etc!
-- How does a Linux user make decisions? They flip a coin in binary!
-- Why did the Linux admin become a gardener? They wanted to grow their own root!
-- What's a Linux user's favorite day of the week? Sysadmin Saturday!
-- Why do Linux users make great artists? They know how to paint with the sudo command!
-- How does a Linux user end a relationship? They say, "It's time to rm -rf you from my life!"
-- What's a Linux user's favorite weather? Cloudy with a chance of sudo!
-- Why did the Linux admin become a chef? They wanted to fork the main dish!
-- What's a Linux user's favorite fruit? The kernel-berry!
-- Why do Linux users love math? It's all about the GNU-mbers!
-- What's a Linux user's favorite movie? The Matrix, because there's no Windows!
-- Why do Linux users never play hide and seek? Because they always find what they grep for!
-- How does a Linux user stay in shape? They run the apt-get workout command!
-- Why did the Linux kernel go to therapy? It had too many issues with its parents (processes)!
-- What's a Linux user's favorite insect? The bug!
-- Why do Linux users love the command line? Because it's where they feel awk-ward!
-- How does a Linux user apologize? They say, "I'm sorry, I promise to be more POSIXitive."
-- Why did the Linux user bring a ladder to the bar? They heard the drinks were on the house!
-- What's a Linux user's favorite board game? grep and Ladders!
-- How does a Linux user prepare for a storm? They make sure their backups are up to date!
-- Why did the Linux user become a musician? They wanted to play in the shell orchestra!
-- What's a Linux user's favorite fruit? The kernel-berry!
-- Why do Linux users love camping? They enjoy living in-tents!
-- How does a Linux user express love? With a sed command: 's/heart/love/g'!
-- Why did the Linux user bring a penguin to the party? They heard it was a cool crowd!
-- What's a Linux user's favorite ice cream flavor? Kernel Crunch!
-- How does a Linux user handle stress? They Ctrl+Alt+Delete their worries!
-- Why did the Linux user become a detective? They were good at tracing system calls!
-- What's a Linux user's favorite clothing? GNU threads!
-- How does a Linux user make a sandwich? With a bash shell!
-- Why did the Linux user become a stand-up comedian? They had a great sense of terminal humor!
-- What's a Linux user's favorite dessert? Root beer float!
-- Why do Linux users hate suspense movies? Because they can't wait to grep the ending!
-- How does a Linux user win a race? They fork faster than anyone else!
-- Why did the Linux user go to art school? To learn the art of sudo-painting!
-- What's a Linux user's favorite sport? Kernel panicking!
-- Why do Linux users never get sunburned? They always stay in the shade of the sudo command!
-- How does a Linux user handle a breakup? They grep through the memories and awknowledge the pain.
+Question 1:
+Fill in the blanks to complete the Linux command that displays the current working directory:
+
+The command to display the current working directory is ________.
+
+Question 2:
+Complete the command to create a new directory named "docs" in the home directory:
+
+To create a new directory named "docs," use the command ________.
+
+Question 3:
+Fill in the blanks to complete the Linux command for listing files in a directory:
+
+The command to list files in a directory is ________.
+
+Question 4:
+Complete the command to copy a file named "file.txt" to the "/backup" directory:
+
+To copy "file.txt" to the "/backup" directory, use the command ________.
+
+Question 5:
+Fill in the blanks to complete the Linux command for removing a directory named "old_docs" and its contents:
+
+The command to remove a directory and its contents is ________.
+
+Question 6:
+Complete the command to find all files with the ".log" extension in the current directory:
+
+To find files with the ".log" extension, use the command ________.
+
+Question 7:
+Fill in the blanks to complete the Linux command for changing file permissions to read and write for the owner:
+
+The command to change file permissions for the owner is chmod ________.
+
+Question 8:
+Complete the command to display information about system memory and swap usage:
+
+To display memory and swap usage, use the command ________.
+
+Question 9:
+Fill in the blanks to complete the Linux command for searching for a specific pattern in files:
+
+The command to search for a pattern in files is ________.
+
+Question 10:
+Complete the command to navigate to the root directory:
+
+To navigate to the root directory, use the command ________.
