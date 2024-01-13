@@ -1,50 +1,42 @@
-Question 1:
-In Linux, the umask command is used to set default permissions for newly created files and directories.
+import requests
+from prometheus_client import CollectorRegistry, Gauge, push_to_gateway, BasicAuthHandler
 
-True
-False
-Question 2:
-The awk command in Linux is primarily used for text processing and manipulation.
+# GitLab Configuration
+GITLAB_API_URL = 'https://gitlab.com/api/v4'  # Replace with your GitLab instance URL
+GITLAB_USER_TOKEN = 'your-gitlab-user-token'
+GITLAB_PROJECT_ID = 'your-gitlab-project-id'
 
-True
-False
-Question 3:
-Linux symbolic links can only point to files and not directories.
+# Prometheus Configuration
+PROMETHEUS_PUSHGATEWAY_URL = 'http://prometheus-server:9091'  # Replace with your Prometheus Pushgateway URL
+JOB_NAME = 'gitlab_exporter'
 
-True
-False
-Question 4:
-The cron daemon is responsible for scheduling tasks in Linux and can be configured by the crontab command.
+# Prometheus Metrics
+registry = CollectorRegistry()
+gitlab_pipeline_status = Gauge('gitlab_pipeline_status', 'GitLab Pipeline Status', ['project'], registry=registry)
 
-True
-False
-Question 5:
-The iptables command is used to configure the Linux kernel firewall.
+def fetch_gitlab_pipeline_status():
+    headers = {'Private-Token': GITLAB_USER_TOKEN}
+    pipeline_url = f'{GITLAB_API_URL}/projects/{GITLAB_PROJECT_ID}/pipelines'
+    
+    response = requests.get(pipeline_url, headers=headers)
 
-True
-False
-Question 6:
-In Linux, the chown command can only change the owner of a file but not the group.
+    if response.status_code == 200:
+        pipeline_data = response.json()
+        # Extract relevant information from the GitLab API response
+        project_name = pipeline_data[0]['project']['name']
+        status = pipeline_data[0]['status']
+        gitlab_pipeline_status.labels(project=project_name).set(1 if status == 'success' else 0)
+    else:
+        print(f"Failed to fetch GitLab pipeline status. Status code: {response.status_code}")
 
-True
-False
-Question 7:
-The tar command in Linux is used for compression and decompression of files.
+if __name__ == '__main__':
+    # Fetch GitLab pipeline status
+    fetch_gitlab_pipeline_status()
 
-True
-False
-Question 8:
-Linux supports real-time scheduling for processes using the nice command.
-
-True
-False
-Question 9:
-The /etc/passwd file stores encrypted user passwords on a Linux system.
-
-True
-False
-Question 10:
-The journalctl command is used to query and display messages from the Linux system journal.
-
-True
-False
+    # Push metrics to Prometheus Push Gateway
+    push_to_gateway(
+        PROMETHEUS_PUSHGATEWAY_URL,
+        job=JOB_NAME,
+        registry=registry,
+        handler=BasicAuthHandler('prometheus-username', 'prometheus-password')  # Replace with your Prometheus credentials
+    )
