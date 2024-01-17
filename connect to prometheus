@@ -1,36 +1,38 @@
-import requests
+import jira
 from prometheus_client import start_http_server, Gauge
-from requests.auth import HTTPBasicAuth
+import time
 
-# Jira API endpoint and authentication details
-JIRA_URL = 'https://your-jira-instance.com/rest/api/2/'
-JIRA_USERNAME = 'your-jira-username'
-JIRA_API_TOKEN = 'your-jira-api-token'
+# Jira connection details
+jira_server = "your_jira_server_url"
+jira_token = "your_jira_token"
 
-# Prometheus metrics
-issues_count = Gauge('jira_issues_count', 'Number of open issues in Jira')
+# Connect to Jira using token authentication
+jira_client = jira.JIRA(basic_auth=("", jira_token), server=jira_server)
 
-def get_jira_issues_count():
-    # Make a request to Jira API to get issue count
-    response = requests.get(
-        f'{JIRA_URL}search?jql=project=YOUR_PROJECT_KEY&maxResults=0',
-        auth=HTTPBasicAuth(JIRA_USERNAME, JIRA_API_TOKEN)
-    )
+# Define Prometheus metrics
+jira_issues_open = Gauge('jira_issues_open', 'Number of open Jira issues', ['project'])
+jira_issues_in_progress = Gauge('jira_issues_in_progress', 'Number of Jira issues in progress', ['project'])
+# ... add more metrics as needed
 
-    # Check if the request was successful
-    if response.status_code == 200:
-        return response.json()['total']
-    else:
-        raise Exception(f"Failed to fetch data from Jira. Status code: {response.status_code}")
+# Fetch Jira issue data
+def fetch_jira_data():
+    issues = jira_client.search_issues('project = "your_project"')  # Replace with your project filter
+    for issue in issues:
+        status = issue.fields.status.name
+        project = issue.fields.project.key
+        if status == "Open":
+            jira_issues_open.labels(project=project).set(1)
+        elif status == "In Progress":
+            jira_issues_in_progress.labels(project=project).set(1)
+        # Handle other statuses as needed
 
-def update_prometheus_metrics():
-    # Update Prometheus metrics with the latest data
-    issues_count.set(get_jira_issues_count())
+# Start Prometheus server
+start_http_server(9090)  # Customize port if needed
 
-if __name__ == '__main__':
-    # Start Prometheus server on port 8000
-    start_http_server(8000)
-
-    # Periodically update Prometheus metrics
-    while True:
-        update_prometheus_metrics()
+# Periodically fetch and expose metrics
+while True:
+    try:
+        fetch_jira_data()
+    except Exception as e:
+        print(f"Error fetching Jira data: {e}")  # Log or handle errors as needed
+    time.sleep(60)  # Adjust interval as needed
