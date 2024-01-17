@@ -1,0 +1,36 @@
+import requests
+from prometheus_client import start_http_server, Gauge
+from requests.auth import HTTPBasicAuth
+
+# Jira API endpoint and authentication details
+JIRA_URL = 'https://your-jira-instance.com/rest/api/2/'
+JIRA_USERNAME = 'your-jira-username'
+JIRA_API_TOKEN = 'your-jira-api-token'
+
+# Prometheus metrics
+issues_count = Gauge('jira_issues_count', 'Number of open issues in Jira')
+
+def get_jira_issues_count():
+    # Make a request to Jira API to get issue count
+    response = requests.get(
+        f'{JIRA_URL}search?jql=project=YOUR_PROJECT_KEY&maxResults=0',
+        auth=HTTPBasicAuth(JIRA_USERNAME, JIRA_API_TOKEN)
+    )
+
+    # Check if the request was successful
+    if response.status_code == 200:
+        return response.json()['total']
+    else:
+        raise Exception(f"Failed to fetch data from Jira. Status code: {response.status_code}")
+
+def update_prometheus_metrics():
+    # Update Prometheus metrics with the latest data
+    issues_count.set(get_jira_issues_count())
+
+if __name__ == '__main__':
+    # Start Prometheus server on port 8000
+    start_http_server(8000)
+
+    # Periodically update Prometheus metrics
+    while True:
+        update_prometheus_metrics()
