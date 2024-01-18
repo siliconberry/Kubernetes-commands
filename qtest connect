@@ -1,0 +1,59 @@
+import requests
+from prometheus_client import start_http_server, Gauge
+import time
+
+# Replace these placeholders with your actual qTest API information
+QTEST_API_KEY = "YOUR_QTEST_API_KEY"
+QTEST_BASE_URL = "YOUR_QTEST_BASE_URL"
+PROJECT_ID = "YOUR_PROJECT_ID"
+
+# qTest API endpoints
+TEST_CYCLE_ENDPOINT = f"{QTEST_BASE_URL}/api/v3/projects/{PROJECT_ID}/test-cycles"
+EXECUTION_ENDPOINT = f"{QTEST_BASE_URL}/api/v3/projects/{PROJECT_ID}/test-cycles/{{test_cycle_id}}/executions"
+
+# Prometheus metrics
+test_cycle_duration = Gauge('qtest_test_cycle_duration_seconds', 'Duration of test cycles', ['test_cycle_id'])
+
+def get_qtest_test_cycles():
+    headers = {
+        'Authorization': f'Bearer {QTEST_API_KEY}',
+        'Content-Type': 'application/json',
+    }
+
+    response = requests.get(TEST_CYCLE_ENDPOINT, headers=headers)
+    response.raise_for_status()
+    return response.json()['items']
+
+def get_test_cycle_executions(test_cycle_id):
+    headers = {
+        'Authorization': f'Bearer {QTEST_API_KEY}',
+        'Content-Type': 'application/json',
+    }
+
+    endpoint = EXECUTION_ENDPOINT.replace("{test_cycle_id}", str(test_cycle_id))
+    response = requests.get(endpoint, headers=headers)
+    response.raise_for_status()
+    return response.json()['items']
+
+def main():
+    start_http_server(8000)  # Start Prometheus HTTP server on port 8000
+
+    while True:
+        test_cycles = get_qtest_test_cycles()
+
+        for test_cycle in test_cycles:
+            test_cycle_id = test_cycle['id']
+            executions = get_test_cycle_executions(test_cycle_id)
+
+            # Calculate duration (for simplicity, assuming start and end timestamps are available)
+            start_time = test_cycle['start_date'] / 1000  # Convert milliseconds to seconds
+            end_time = test_cycle['end_date'] / 1000
+            duration = end_time - start_time
+
+            # Update Prometheus metric
+            test_cycle_duration.labels(test_cycle_id=str(test_cycle_id)).set(duration)
+
+        time.sleep(60)  # Sleep for 60 seconds (adjust as needed)
+
+if __name__ == '__main__':
+    main()
