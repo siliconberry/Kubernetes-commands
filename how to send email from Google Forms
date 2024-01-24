@@ -1,0 +1,40 @@
+function onFormSubmit(e) {
+  // Get form responses
+  var responses = e.values;
+
+  // Replace 'your-email@example.com' with the email address you want to send the notification to
+  var toEmail = 'your-email@example.com';
+
+  // Replace 'Form Submission' with your desired email subject
+  var subject = 'Form Submission';
+
+  // Open the form to get the list of questions
+  var form = FormApp.openById(e.source.getId());
+  var items = form.getItems();
+
+  // Create a table with form responses
+  var body = '<table style="border-collapse: collapse; width: 100%;"><tr style="background-color: #f2f2f2; text-align: left;"><th style="padding: 10px; border: 1px solid #ddd;">Question</th><th style="padding: 10px; border: 1px solid #ddd;">Answers</th></tr>';
+  for (var i = 0; i < responses.length; i++) {
+    var answers = responses[i].split(',').map(answer => answer.trim()); // Split and trim
+
+    var questionText = items[i].getTitle();
+    
+    body += '<tr><td style="padding: 10px; border: 1px solid #ddd;">' + questionText + '</td><td style="padding: 10px; border: 1px solid #ddd;">';
+    if (answers.length > 1) {
+      for (var j = 0; j < answers.length; j++) {
+        body += answers[j] + '<br>'; // Display each value on a new line
+      }
+    } else {
+      body += answers[0]; // Display the single value
+    }
+    body += '</td></tr>';
+  }
+  body += '</table>';
+
+  // Send email with HTML content
+  MailApp.sendEmail({
+    to: toEmail,
+    subject: subject,
+    htmlBody: body,
+  });
+}
