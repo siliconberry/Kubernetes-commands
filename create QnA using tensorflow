@@ -1,0 +1,48 @@
+import tensorflow as tf
+from transformers import DistilBertTokenizerFast
+import fitz  # PyMuPDF
+
+# Function to extract text from a PDF
+def extract_text_from_pdf(pdf_path):
+    doc = fitz.open(pdf_path)
+    text = ""
+    for page_num in range(doc.page_count):
+        page = doc[page_num]
+        text += page.get_text()
+    doc.close()
+    return text
+
+# Function to perform question-answering
+def answer_question(question, pdf_text):
+    tokenizer = DistilBertTokenizerFast.from_pretrained("distilbert-base-cased-distilled-squad")
+    model = tf.saved_model.load("distilbert-base-cased-distilled-squad-tf")
+
+    # Tokenize input
+    inputs = tokenizer(question, pdf_text, return_tensors="tf")
+
+    # Make prediction
+    outputs = model(inputs)
+    start_logits = outputs["start_logits"]
+    end_logits = outputs["end_logits"]
+
+    # Get the answer
+    start_index = tf.argmax(start_logits, axis=1).numpy()[0]
+    end_index = tf.argmax(end_logits, axis=1).numpy()[0]
+    answer = tokenizer.convert_tokens_to_string(tokenizer.convert_ids_to_tokens(inputs["input_ids"].numpy()[0][start_index:end_index + 1]))
+
+    return answer
+
+# Main script
+pdf_path = "your_file.pdf"  # Replace with the path to your PDF file
+
+# Extract text from the PDF
+pdf_text = extract_text_from_pdf(pdf_path)
+
+# Prompt the user to ask a question
+user_question = input("Ask a question about the document: ")
+
+# Answer the user's question
+result = answer_question(user_question, pdf_text)
+
+# Display the answer
+print(f"Answer: {result}")
