@@ -1,0 +1,43 @@
+import csv
+import requests
+
+# InfluxDB connection parameters
+influx_url = "http://localhost:8086/api/v2/write"
+influx_token = "your_token"
+influx_org = "your_org"
+influx_bucket = "your_bucket"
+
+# Path to your CSV file
+csv_file_path = 'data.csv'
+
+# Function to parse CSV and send data to InfluxDB
+def parse_csv_and_send_to_influxdb(csv_file_path, influx_url, influx_token, influx_org, influx_bucket):
+    with open(csv_file_path, 'r') as csvfile:
+        reader = csv.DictReader(csvfile)
+        for row in reader:
+            data = []
+            timestamp = row['timestamp']  # Assuming timestamp is one of the columns
+            measurement_name = 'your_measurement_name'
+            # Construct line protocol data
+            line_protocol = f"{measurement_name} "
+            for key, value in row.items():
+                if key != 'timestamp':
+                    line_protocol += f"{key}={value},"
+            line_protocol = line_protocol[:-1]  # Remove trailing comma
+            line_protocol += f" {timestamp}"
+            data.append(line_protocol)
+            # Send data to InfluxDB
+            headers = {
+                'Authorization': f'Token {influx_token}',
+                'Content-Type': 'application/vnd.flux',
+            }
+            params = {
+                'org': influx_org,
+                'bucket': influx_bucket,
+            }
+            response = requests.post(influx_url, headers=headers, params=params, data='\n'.join(data))
+            if response.status_code != 204:
+                print(f"Failed to send data: {response.text}")
+
+# Call the function to parse CSV and send data to InfluxDB
+parse_csv_and_send_to_influxdb(csv_file_path, influx_url, influx_token, influx_org, influx_bucket)
