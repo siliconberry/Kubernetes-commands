@@ -1,0 +1,48 @@
+import os
+import time
+from datetime import datetime, timedelta
+
+# Define the directory you want to check
+directory = '/path/to/your/directory'
+
+# Get today's date
+today_date = datetime.now().strftime('%Y-%m-%d')
+output_file = os.path.join(directory, f'output_{today_date}.txt')
+
+# Get the time 2 days ago
+two_days_ago = datetime.now() - timedelta(days=2)
+
+# List to hold the contents of the .sav files
+file_contents = []
+
+# Iterate over all files in the directory
+for filename in os.listdir(directory):
+    file_path = os.path.join(directory, filename)
+    
+    # Check if it is a file (not a directory)
+    if os.path.isfile(file_path):
+        # Check if the file is an old output file based on the date in the filename
+        if filename.startswith('output_') and filename.endswith('.txt'):
+            try:
+                file_date_str = filename[len('output_'):-len('.txt')]
+                file_date = datetime.strptime(file_date_str, '%Y-%m-%d')
+                if file_date < two_days_ago:
+                    os.remove(file_path)
+                    print(f"Deleted old output file: {file_path}")
+            except ValueError:
+                # If the date format is incorrect, skip the file
+                continue
+        
+        # Process .sav files
+        if filename.endswith('.sav'):
+            # Open the file and read its content
+            with open(file_path, 'r') as f:
+                content = f.readline().strip()
+                file_contents.append((filename, content))
+
+# Write the contents to the output file
+with open(output_file, 'w') as f:
+    for filename, content in file_contents:
+        f.write(f"{filename}: {content}\n")
+
+print(f"Contents written to {output_file}")
