@@ -1,30 +1,40 @@
-import asyncio
 import os
 from slack_bolt import App
 from slack_bolt.adapter.socket_mode import SocketModeHandler
+import chainlit as cl
 
-# Replace with your Slack Bolt app's API token
-SLACK_BOT_TOKEN = os.environ.get("SLACK_BOT_TOKEN")
-APP_ID = os.environ.get("SLACK_APP_ID")
+# Initialize the Slack app
+slack_app = App(token=os.environ["SLACK_BOT_TOKEN"])
 
-# Initialize the Slack Bolt app
-app = App(token=SLACK_BOT_TOKEN)
+# Chainlit setup
+@cl.on_chat_start
+def start():
+    cl.User(identifier="slack_user").send()
 
-# Define a simple event handler to listen for "app_mention" events
-@app.event("app_mention")
-def handle_app_mention(body, say):
-    user_id = body["event"]["user"]
-    channel_id = body["event"]["channel"]
-    text = body["event"]["text"]
+@cl.on_message
+async def main(message: cl.Message):
+    # Process the message and generate a response
+    response = f"Received: {message.content}"
+    
+    # Send the response back to Chainlit
+    await cl.Message(content=response).send()
 
-    # Respond to the user in the same channel
-    say(f"Hi, <@{user_id}>! You said: {text}")
+    # Send the response to Slack
+    slack_app.client.chat_postMessage(
+        channel=os.environ["SLACK_CHANNEL_ID"],
+        text=response
+    )
 
-# Create a SocketModeHandler instance
-handler = SocketModeHandler(app, APP_ID)
+# Slack event handler
+@slack_app.event("message")
+def handle_message(event, say):
+    # Process the Slack message
+    user_message = event["text"]
+    
+    # Send the message to Chainlit
+    cl.Message(content=user_message, author="slack_user").send()
 
-# Start the SocketModeHandler
-async def main():
-    await handler.start()
-
-asyncio.run(main())
+# Start the Socket Mode handler
+if __name__ == "__main__":
+    handler = SocketModeHandler(slack_app, os.environ["SLACK_APP_TOKEN"])
+    handler.start()
