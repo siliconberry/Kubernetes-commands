@@ -1,44 +1,77 @@
 import os
-import logging
+import asyncio
 from slack_bolt import App
 from slack_bolt.adapter.socket_mode import SocketModeHandler
 import chainlit as cl
+import logging
+from queue import Queue
 
-# Initialize the Slack app
-app = App(token=os.environ["SLACK_BOT_TOKEN"])
+# Set up logging
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Chainlit app logic
-@cl.on_message
-async def on_message(msg: cl.Message):
-    # Access the original slack event
-    slack_event = cl.user_session.get("slack_event")
-    slack_user = cl.user_session.get("user")
-    attached_files = msg.elements
-    
-    # Process the message here
-    print(f"Received message from {slack_user} with text: {msg.content}")
-    
-    # Send a response back to Slack
-    await cl.Message(content="Hello World").send()
+# Initialize the Slack app
+slack_app = App(token=os.environ["SLACK_BOT_TOKEN"])
 
-# Slack event listener for messages
-@app.event("message")
-def handle_message(payload, context):
-    # Extract the message text
-    message_text = payload["event"]["text"]
-    channel_id = payload["event"]["channel"]
-    user_id = payload["event"]["user"]
-    
-    # Forward the message to the Chainlit app
-    cl.user_session.set("slack_event", payload["event"])
-    cl.user_session.set("user", user_id)
-    cl.user_session.set("channel", channel_id)
-    
-    # Trigger the Chainlit on_message function
-    on_message(cl.Message(content=message_text))
+# Queue to store messages from Slack
+slack_message_queue = Queue()
 
-# Start the Slack app
+# Initialize Chainlit app (assuming it's a function-based setup)
+@cl.on_chat_start
+async def start_chainlit_session():
+    await cl.Message(content="Chainlit session started. Ready to process messages from Slack!").send()
+    asyncio.create_task(process_slack_messages())
+
+# Event listener for any message in channels where the bot is present
+@slack_app.event("message")
+def handle_message_events(event, say):
+    text = event.get('text', '')
+    channel_id = event['channel']
+    if text:
+        slack_message_queue.put({'text': text, 'channel': channel_id, 'say': say})
+
+async def process_slack_messages():
+    while True:
+        if not slack_message_queue.empty():
+            slack_message = slack_message_queue.get()
+
+            # Extract message details
+            original_text = slack_message['text']
+            channel_id = slack_message['channel']
+            say = slack_message['say']
+
+            # Log the received message
+            logger.info(f"Processing Slack message: {original_text}")
+
+            # Send the message to Chainlit and get the response
+            response = await process_message_with_chainlit(original_text)
+
+            # Send the Chainlit response back to Slack
+            if response:
+                await say(channel=channel_id, text=response)
+
+        await asyncio.sleep(0.1)  # Short sleep to prevent busy-waiting
+
+async def process_message_with_chainlit(message):
+    # This function should handle sending a message to Chainlit and returning the response
+    response_message = None
+
+    # Send the message to Chainlit
+    async with cl.open_connection() as conn:
+        response = await conn.send_message(content=message)
+
+        # Capture Chainlit's response
+        if response and response.messages:
+            response_message = response.messages[-1].content
+
+    return response_message
+
+@slack_app.error
+async def custom_error_handler(error):
+    logger.exception(f"Error: {error}")
+
+# Start the Slack app using Socket Mode
 if __name__ == "__main__":
-    handler = SocketModeHandler(app, os.environ["SLACK_APP_TOKEN"])
-    handler.start()
+    handler = SocketModeHandler(slack_app, os.environ["SLACK_APP_TOKEN"])
+    asyncio.run(start_chainlit_session())  # Start the Chainlit session
+    handler.start()  # Start the Slack app
