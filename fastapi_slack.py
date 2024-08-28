@@ -1,8 +1,7 @@
 import os
 import asyncio
-from fastapi import FastAPI, Request, Response
+from fastapi import FastAPI
 from slack_bolt.async_app import AsyncApp
-from slack_bolt.adapter.fastapi.async_handler import AsyncSlackRequestHandler
 from slack_bolt.adapter.socket_mode.async_handler import AsyncSocketModeHandler
 import aiohttp
 import logging
@@ -16,7 +15,6 @@ app = FastAPI()
 
 # Initialize Slack app
 slack_app = AsyncApp(token=os.environ["SLACK_BOT_TOKEN"])
-slack_handler = AsyncSlackRequestHandler(slack_app)
 
 # Slack event handlers
 @slack_app.event("app_mention")
@@ -40,35 +38,20 @@ async def send_to_chainlit(message):
             return await resp.text()
 
 # FastAPI routes
-@app.post("/slack/events")
-async def endpoint(req: Request):
-    return await slack_handler.handle(req)
-
-@app.post("/slack/interactive-endpoint")
-async def interactive_endpoint(req: Request):
-    return await slack_handler.handle(req)
-
 @app.get("/")
 async def get():
     return {"message": "FastAPI with Slack integration is running"}
 
-# Handle Slack's URL verification
-@app.post("/slack/events")
-async def slack_events(request: Request):
-    data = await request.json()
-    if data.get("type") == "url_verification":
-        return {"challenge": data.get("challenge")}
-    return await slack_handler.handle(request)
+# Socket Mode handler
+async def start_socket_mode():
+    handler = AsyncSocketModeHandler(slack_app, os.environ["SLACK_APP_TOKEN"])
+    await handler.start_async()
 
 # Background tasks
 @app.on_event("startup")
 async def startup_event():
     # Start Slack app in Socket Mode
-    if os.environ.get("SLACK_APP_TOKEN"):
-        handler = AsyncSocketModeHandler(slack_app, os.environ["SLACK_APP_TOKEN"])
-        asyncio.create_task(handler.start_async())
-    else:
-        logger.info("SLACK_APP_TOKEN not found. Running without Socket Mode.")
+    asyncio.create_task(start_socket_mode())
 
 # Run the FastAPI app
 if __name__ == "__main__":
