@@ -1,0 +1,29 @@
+# Function to collect Citrix session information and save it to a CSV file
+function Collect-CitrixSessionInfo {
+    # Import the Citrix module if not already imported
+    if (-not (Get-Module -ListAvailable -Name Citrix.Broker.Admin.V2)) {
+        Import-Module Citrix.Broker.Admin.V2 -ErrorAction Stop
+    }
+
+    # Get the session information
+    $sessions = Get-BrokerSession
+
+    # Define the output file path
+    $outputFilePath = "C:\Path\To\Output\CitrixSessionInfo.csv"
+
+    # Append the session information to the CSV file
+    $sessions | Select-Object UserName, MachineName, SessionState, ConnectedVia, LogonTime, SessionType | 
+    Export-Csv -Path $outputFilePath -NoTypeInformation -Append
+
+    # Log completion for tracking
+    Write-Host "Citrix session information collected and stored at $(Get-Date)"
+}
+
+# Schedule the script to run periodically
+while ($true) {
+    # Collect Citrix session information
+    Collect-CitrixSessionInfo
+
+    # Wait for 5 minutes (300 seconds)
+    Start-Sleep -Seconds 300
+}
