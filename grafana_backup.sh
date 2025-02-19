@@ -1,3 +1,16 @@
+./configure \
+    --prefix=$HOME/php82 \
+    --with-config-file-path=$HOME/php82/etc \
+    --with-config-file-scan-dir=$HOME/php82/etc/conf.d \
+    --enable-bcmath \
+    --enable-mbstring \
+    --enable-zip \
+    --with-openssl \
+    --with-curl \
+    --with-sodium \
+    --enable-fpm \
+    --with-zlib
+
 #!/bin/bash
 
 # Configuration
