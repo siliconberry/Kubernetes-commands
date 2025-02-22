@@ -13,15 +13,16 @@ source_headers = {
     "Authorization": f"Bearer {source_api_key}",
     "Content-Type": "application/json"
 }
-
 target_headers = {
     "Authorization": f"Bearer {target_api_key}",
     "Content-Type": "application/json"
 }
 
-# Create directory for exported dashboards
+# Create directory for exported dashboards and library panels
 if not os.path.exists("exported_dashboards"):
     os.makedirs("exported_dashboards")
+if not os.path.exists("exported_library_panels"):
+    os.makedirs("exported_library_panels")
 
 # Step 1: Get all folders from source
 def get_all_folders():
@@ -94,6 +95,35 @@ def import_dashboard(dashboard_data, folder_id):
         print(f"Failed to import dashboard: {response.text}")
         return False
 
+# Step 6: Export all library panels from source
+def export_library_panels():
+    response = requests.get(f"{source_url}/api/library-elements", headers=source_headers)
+    if response.status_code == 200:
+        library_panels = response.json().get('result', [])
+        for panel in library_panels:
+            panel_uid = panel['uid']
+            with open(f"exported_library_panels/{panel_uid}.json", 'w') as f:
+                json.dump(panel, f, indent=2)
+        return library_panels
+    else:
+        print(f"Failed to export library panels: {response.text}")
+        return []
+
+# Step 7: Import library panels into target
+def import_library_panel(panel_data):
+    payload = {
+        "uid": panel_data['uid'],
+        "name": panel_data['name'],
+        "model": panel_data['model']
+    }
+    response = requests.post(f"{target_url}/api/library-elements", headers=target_headers, json=payload)
+    if response.status_code == 200:
+        print(f"Imported library panel: {panel_data['name']}")
+        return True
+    else:
+        print(f"Failed to import library panel: {response.text}")
+        return False
+
 # Main migration process
 def migrate_all():
     # Get and create folders
@@ -110,6 +140,11 @@ def migrate_all():
             target_folder_id = create_folder(folder)
             if target_folder_id:
                 folder_id_mapping[folder['id']] = target_folder_id
+    
+    # Migrate library panels
+    library_panels = export_library_panels()
+    for panel in library_panels:
+        import_library_panel(panel)
     
     # Migrate dashboards in each folder
     for source_folder_id, target_folder_id in folder_id_mapping.items():
