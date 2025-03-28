@@ -1,5 +1,30 @@
-# Adding two numbers
-a = 5
-b = 3
-result = a + b
-print(result)  # Output: 8
+#!/bin/bash
+
+# Define the service name
+SERVICE_NAME="httpd"
+
+# Check if the service is running
+echo "Checking if $SERVICE_NAME is running..."
+
+# Use systemctl to check the status of the service
+systemctl_status=$(sudo systemctl status $SERVICE_NAME 2>&1)
+
+if echo "$systemctl_status" | grep -q "active (running)"; then
+    echo "$SERVICE_NAME is already running."
+else
+    echo "$SERVICE_NAME is not running. Attempting to start it..."
+    
+    # Start the service
+    sudo systemctl start $SERVICE_NAME
+    
+    # Check if the service started successfully
+    systemctl_status=$(sudo systemctl status $SERVICE_NAME 2>&1)
+    if echo "$systemctl_status" | grep -q "active (running)"; then
+        echo "$SERVICE_NAME has been successfully started."
+    else
+        echo "Failed to start $SERVICE_NAME. Please check the logs for more details."
+        echo "Status output:"
+        echo "$systemctl_status"
+        exit 1
+    fi
+fi
