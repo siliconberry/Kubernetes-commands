@@ -1,0 +1,52 @@
+version: '3'
+services:
+  opensearch:
+    image: opensearchproject/opensearch:latest
+    container_name: opensearch-node
+    environment:
+      - cluster.name=opensearch-cluster       # Name of the OpenSearch cluster
+      - node.name=opensearch-node1            # Name of the node
+      - discovery.type=single-node           # Single-node cluster (for development)
+      - bootstrap.memory_lock=true           # Prevent memory swapping
+      - "OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m"  # Set Java heap size
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - opensearch-data:/usr/share/opensearch/data  # Persistent storage for data
+    ports:
+      - "8085:9200"  # REST API endpoint (host:container)
+      - "8086:9600"  # Performance Analyzer (host:container)
+    networks:
+      - opensearch-net
+
+  dashboards:
+    image: opensearchproject/opensearch-dashboards:latest
+    container_name: opensearch-dashboards
+    environment:
+      - OPENSEARCH_HOSTS=["http://opensearch:9200"]  # Connect to the OpenSearch service
+    ports:
+      - "8087:5601"  # OpenSearch Dashboards UI (host:container)
+    networks:
+      - opensearch-net
+    depends_on:
+      - opensearch
+
+  prometheus-exporter:
+    image: justwatch/elasticsearch_exporter:latest  # Compatible with OpenSearch
+    container_name: opensearch-exporter
+    environment:
+      - ES_URI=http://opensearch:9200  # URI for OpenSearch
+    ports:
+      - "8088:9114"  # Prometheus metrics endpoint (host:container)
+    networks:
+      - opensearch-net
+    depends_on:
+      - opensearch
+
+volumes:
+  opensearch-data:
+
+networks:
+  opensearch-net:
