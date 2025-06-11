@@ -1,0 +1,87 @@
+import requests
+import json
+
+# The endpoint for your MCP server running in Docker
+MCP_SERVER_URL = "http://localhost:3000/mcp"
+
+def invoke_atlassian_tool(tool_name: str, parameters: dict) -> dict:
+    """
+    Sends a request to the MCP server to invoke a specific tool.
+
+    Args:
+        tool_name (str): The name of the tool to invoke (e.g., 'jira.search_issues').
+        parameters (dict): A dictionary of parameters for the tool.
+
+    Returns:
+        dict: The JSON response from the server as a dictionary.
+    """
+    
+    # Standard JSON-RPC 2.0 request structure for MCP
+    request_payload = {
+        "jsonrpc": "2.0",
+        "method": "$/invoke",  # The standard method for calling a tool
+        "params": {
+            "tool": tool_name,
+            "parameters": parameters
+        },
+        "id": 1  # A unique ID for the request
+    }
+    
+    headers = {
+        "Content-Type": "application/json"
+    }
+    
+    print(f"-> Sending request to invoke tool: '{tool_name}'")
+    print(f"   Parameters: {json.dumps(parameters, indent=2)}")
+
+    try:
+        # Send the POST request to the server
+        response = requests.post(
+            MCP_SERVER_URL, 
+            json=request_payload, 
+            headers=headers,
+            timeout=30  # 30-second timeout
+        )
+        
+        # Raise an exception for bad HTTP status codes (like 404 or 500)
+        response.raise_for_status()
+        
+        # Return the JSON response from the server
+        return response.json()
+
+    except requests.exceptions.RequestException as e:
+        print(f"\n[ERROR] An error occurred while connecting to the MCP server: {e}")
+        return None
+
+# --- --- --- Example Usage --- --- ---
+if __name__ == "__main__":
+    # Example 1: Search for the 5 most recently updated Jira issues in a project
+    # IMPORTANT: Replace 'PROJ' with a real project key from your Jira instance.
+    jira_tool = "jira.search_issues"
+    jira_params = {
+        "jql": "project = 'PROJ' ORDER BY updated DESC",
+        "max_results": 5
+    }
+    
+    jira_response = invoke_atlassian_tool(jira_tool, jira_params)
+
+    print("\n--- Server Response ---")
+    if jira_response:
+        # Pretty-print the JSON response
+        print(json.dumps(jira_response, indent=2))
+        
+        # You can now process the result
+        if 'result' in jira_response and jira_response['result'] is not None:
+            print("\n--- Parsed Issue Summaries ---")
+            issues = jira_response['result']['issues']
+            if issues:
+                for issue in issues:
+                    print(f"- {issue['key']}: {issue['fields']['summary']}")
+            else:
+                print("No issues found for the given JQL.")
+
+        elif 'error' in jira_response:
+            print(f"\n[ERROR] The server returned an error: {jira_response['error']['message']}")
+            
+    else:
+        print("Failed to get a response from the server.")
